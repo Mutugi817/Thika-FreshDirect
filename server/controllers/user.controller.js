@@ -2,12 +2,13 @@ import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
 import bcrypt from "bcryptjs";
+
 // Register user : /api/user/register
 export const register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
         if (!name || !email || !password) {
-            return res.json({success: false, message: "Email or name or password is missing"});
+            return res.json({success: false, message: "All fields are mandatory"});
         }
         const existingUser = await User.findOne({email});
 
@@ -47,7 +48,7 @@ export const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.json({success: false, message: "Invalid password"});
+            return res.json({success: false, message: "Invalid password or email"});
         }
 
           const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -60,6 +61,33 @@ export const login = async (req, res) => {
         return res.json({ success: true, user: {email: user.email, name: user.name, password: user.password}});
     }
      catch (error) {
+        console.log("Error in the user login controller API", error.message);
+        res.json({success: false, message: error.message });
+    }
+}
+
+// Check auth : /api/user/is-auth
+export const isAuth = async (req, res) => {
+    try {
+        const { useId } = req.body;
+        const user = await User.findById(useId).select("-password")
+        return res.json({success: true, user});
+    } catch (error) {
+         console.log("Error in the user is-auth controller API", error.message);
+        res.json({success: false, message: error.message });
+    }
+}
+
+// Logout User : /api/user.logout
+export const logout = async (req, res) => {
+    try {
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            samesite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        })
+        return res.json({sucess: true, message: "Logged Out successfuly"})
+    } catch (error) {
         console.log("Error in the user login controller API", error.message);
         res.json({success: false, message: error.message });
     }

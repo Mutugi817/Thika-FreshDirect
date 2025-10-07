@@ -8,7 +8,7 @@ export const connectDB = async () => {
         }
         mongoose.connection.on("Connected", () => console.log("Database connected"));
 		const conn = await mongoose.connect(process.env.MONGODB_URI);
-		console.log(`MongoDB connected: ${conn.connection.host}`);
+		console.log(`MongoDB connected: ${conn.connection.host}/ThikaFreshDirect`);
 	} catch (error) {
 		console.log("Error connecting to MONGODB", error.message);
 		process.exit(1);
